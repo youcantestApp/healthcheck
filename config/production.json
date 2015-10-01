@@ -1,0 +1,16 @@
+{
+  "environment" :  "production",
+  "connections": {
+    "nosql":"mongodb://admin:admin@mongodb:27017",
+    "queue":"amqp://admin:admin@rabbit"
+  },
+  "nosql": {
+    "database": "youcantest_db"
+  },
+  "queues": {
+    "schedule": {
+      "main":"yct.schedule",
+      "error":"yct.schedule.error"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "apps":
+  [
+    {
+      "name"             : "healthcheck",
+      "args"             : ["-p 7"],
+      "script"           : "./dist/index.js",
+      "node_args"        : ["--harmony"],
+      "log_date_format"  : "YYYY-MM-DD HH:mm:ss Z",
+      "instances"        : 1,
+      "cron_restart"     : "0 */7 * * * *",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}
