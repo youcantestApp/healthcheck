@@ -75,7 +75,8 @@ export default class HealthCheck {
     result.testExecution = {};
     let checktest = this[scheduleRepo].getById(schedule_id).then((resp) => {
       console.log('3');
-      if(resp && resp.length > 0) {
+      console.log('resp:', resp);
+      if(resp) {
         result.testExecution.status = true;
         result.testExecution.err = null;
 
