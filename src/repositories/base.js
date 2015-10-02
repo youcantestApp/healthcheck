@@ -125,7 +125,7 @@ export default class BaseRepository {
   	this.getConnection().then((db) => {
   		let collection = db.collection(this.collection);
 
-  		collection.findOne().toArray((err, docs) => {
+  		collection.find().sort({ 'executionDate': -1 }).toArray((err, docs) => {
   			if (err != null) {
   				return defer.reject({
             message:`error on find documents in collection ${this.collection}`,

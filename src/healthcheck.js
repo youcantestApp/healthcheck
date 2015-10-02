@@ -28,6 +28,7 @@ export default class HealthCheck {
     //first check queue connnection
     result.queue = {};
     let checkqueue = this[queueService].prepare().then((msg) => {
+      console.log('0');
       result.queue.status = true;
       result.queue.err = null;
     }, (err) => {
@@ -39,9 +40,12 @@ export default class HealthCheck {
 
     //then check database connection
     result.database = {};
-    let checkdb = this[healthcheckRepo].getConnection().then(() => {
+    let checkdb = this[healthcheckRepo].getConnection().then((db) => {
+      console.log('1');
       result.database.status = true;
       result.database.err = null;
+
+      db.close();
     }, (err) => {
       result.database.status = false;
       result.database.err = err;
@@ -51,6 +55,7 @@ export default class HealthCheck {
     //then check if collection is ok
     result.collection= {};
     let checkcollection = this[healthcheckRepo].getLastOne().then((resp) => {
+      console.log('2');
       if(resp && resp.length > 0) {
         result.collection.status = true;
         result.collection.err = null;
@@ -69,12 +74,14 @@ export default class HealthCheck {
     let schedule_id = '560cab39363465000b6b0000';
     result.testExecution = {};
     let checktest = this[scheduleRepo].getById(schedule_id).then((resp) => {
+      console.log('3');
       if(resp && resp.length > 0) {
         result.testExecution.status = true;
         result.testExecution.err = null;
 
         if(resp.resultId) {
           let checkweb = this[resultRepo].getById(resp.resultId).then((data) => {
+            console.log('4');
             result.web = true;
           }, (err) => {
             result.web = false;
@@ -95,9 +102,15 @@ export default class HealthCheck {
 
 
     //now persist results
-    q.all(executions).fin(() => {
+    return q.all(executions).fin(() => {
       result.executionDate = new Date();
-      this[healthcheckRepo].save(result);
+      console.log(result);
+      this[healthcheckRepo].save(result).then(() => {
+        console.log('finish save');
+        return;
+      }, () => {
+        console.log('error up save healthcheck');
+      });
     });
   }
 }
