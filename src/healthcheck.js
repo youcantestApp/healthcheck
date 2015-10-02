@@ -3,15 +3,17 @@
 import q from 'q';
 
 import ScheduleRepository from './repositories/schedule';
+import ResultRepository from './repositories/test-result';
 import HealthcheckRepository from './repositories/healthcheck';
 import QueueService from './services/queue';
 
-let configs = Symbol(), scheduleRepo = Symbol(), healthcheckRepo = Symbol(), queueService = Symbol();
+let configs = Symbol(), resultRepo = Symbol(), scheduleRepo = Symbol(), healthcheckRepo = Symbol(), queueService = Symbol();
 
 export default class HealthCheck {
   constructor(config) {
     this[configs] = config;
     this[scheduleRepo] = new ScheduleRepository(config);
+    this[resultRepo] = new ResultRepository(config);
     this[healthcheckRepo] = new HealthcheckRepository(config);
     this[queueService] = new QueueService({
       connection: this[configs].connections.queue,
@@ -73,31 +75,31 @@ export default class HealthCheck {
     //then check if tests are executated on last 5 minutes
     let schedule_id = '560cab39363465000b6b0000';
     result.testExecution = {};
-    let checktest = this[scheduleRepo].getById(schedule_id).then((resp) => {
+    let checktest = this[resultRepo].getByScheduleId(schedule_id).then((resp) => {
       console.log('3');
       console.log('resp:', resp);
       if(resp) {
-        result.testExecution.status = true;
-        result.testExecution.err = null;
-
-        if(resp.resultId) {
-          let checkweb = this[resultRepo].getById(resp.resultId).then((data) => {
-            console.log('4');
-            result.web = true;
-          }, (err) => {
-            result.web = false;
-          });
-
-          executions.push(checkweb);
+        var execution_date = new Date(result.executionDate.toString());
+        if(new Date() - executionDate <= 600000) {
+          result.testExecution.status = true;
+          result.testExecution.err = null;
         }
+        else {
+          result.testExecution.status = false;
+          result.testExecution.err = 'last execution time is more than 10 minutes ago';
+        }
+
+        result.web = resp.testSucceed;
       }
       else {
         result.testExecution.status = false;
         result.testExecution.err = {message:'none found'};
+        result.web = undefined;
       }
     }, (err) => {
       result.testExecution.status = false;
       result.testExecution.err = err;
+      result.web = undefined;
     });
     executions.push(checktest);
 
